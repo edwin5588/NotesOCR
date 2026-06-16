@@ -1,29 +1,3 @@
-Problem Statement:
-
-Your task is to develop an algorithm that parses the relevant information out of that page into **structured, machine-readable output**.
-
-A heads-up on why this is hard: 
-standard OCR and off-the-shelf vision-language models tend to do poorly on pages like this 
-- messy handwriting, 
-- scientific shorthand,
--  and hand-drawn chemical structures.
-
-Getting those right is the point of the exercise.
-
-We'll evaluate your submission on four levels, in roughly increasing order of difficulty:
-1. Text — can your algorithm accurately extract the handwritten plain text (the written notes, procedures, and tables)?
-2. Special symbols — can it correctly capture scientific notation and symbols that typically get mangled (e.g., °C, λ, θ, units, sub/superscripts)?
-3. Chemistry — can it extract the chemical content, including the hand-drawn molecular structures, formulas, reagents, and concentrations?
-4. Experiment — can it figure out what was actually happening in the experiment: the goal, the conditions, the procedure, and the results?
-
-Aim as far up this list as you can — partial solutions are still valuable, so show us how far you get. Where something is ambiguous, make reasonable assumptions and note them in your submission.
-
-To submit, please send us two things by Thursday at 3:00 PM ET:
-A ~2-minute video demonstrating your algorithm's performance, and
-A link to the GitHub repository containing your code.
-
----
-
 ## Approach
 
 ### What didn't work
