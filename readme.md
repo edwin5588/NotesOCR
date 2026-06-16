@@ -55,7 +55,7 @@ sudo apt install texlive-latex-base
 
 ### Output
 
-The final structured report is [`final_lab_report.pdf`](final_lab_report.pdf). Corresponding .md file is [`final_lab_markdown`](old_runs/polished_lab_notebook_v3_accepted.md)
+The final structured report is [`final_lab_report.pdf`](final_lab_report.pdf). Corresponding .md file is [`final_lab_markdown`](old_tests/polished_lab_notebook_v3_accepted.md)
 
 ### Running
 
