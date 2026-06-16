@@ -51,11 +51,12 @@ brew install --cask mactex-no-gui
 sudo apt install texlive-latex-base
 ```
 
-> **Note:** Because LLMs are non-deterministic, repeated runs on the same image may produce slightly different outputs while remaining semantically equivalent.
+
 
 ### Output
-
 The final structured report is [`final_lab_report.pdf`](final_lab_report.pdf). Corresponding .md file is [`final_lab_markdown`](old_tests/polished_lab_notebook_v3_accepted.md)
+> **Note:** Because LLMs are non-deterministic, repeated runs on the same image may produce slightly different outputs while remaining semantically equivalent.
+
 
 ### Running
 
