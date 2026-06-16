@@ -15,10 +15,13 @@ The final structured text is stitched together and passed to a text-only LLM tha
 ### Pipeline
 
 1. **Surya layout detection** — segments the page into labeled regions (Text, Table, Equation, SectionHeader, ChemicalBlock)
+<img src="static/region_detect.png" width="500"/>
 2. **Per-region VLM extraction** — each crop is sent to a local VLM (Qwen3-VL) with a region-type-specific prompt, producing verbatim transcripts, LaTeX equations, Markdown tables, or SMILES structures
-3. **Stitch** — regions are sorted top-to-bottom and concatenated into a single Markdown document
+3. **Stitch** — regions are sorted top-to-bottom and concatenated into a single Markdown document (Qwen3.5:4b)
+4. **Export** - Exports to .pdf (human readable) and .md (machine readable) files. 
 
-![Region detection example](static/region_detect.png)
+
+
 
 ### Requirements
 
