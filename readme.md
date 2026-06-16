@@ -19,8 +19,8 @@ The final structured text is stitched together and passed to a text-only LLM tha
 <img src="static/region_detect.png" width="500"/>
 
 2. **Per-region VLM extraction** — each crop is sent to a local VLM (Qwen3-VL) with a region-type-specific prompt, producing verbatim transcripts, LaTeX equations, Markdown tables, or SMILES structures
-  - There could be alot of regions (Surya identified 25), and running the VLM locally takes a long time. 
-  - This part is longest, but can easily swap out for an async version, where each region + prompt is sent to an inference API for parallel processing.
+  - Regions are extracted in parallel using a `ThreadPoolExecutor` (4 workers by default). To match, start Ollama with `OLLAMA_NUM_PARALLEL=4 ollama serve`.
+  - Since inference runs locally via Ollama, this step is slow (~5 min for a 25-region page). Swapping to an external inference API would significantly reduce this.
 3. **Stitch** — regions are sorted top-to-bottom and concatenated into a single Markdown document (Qwen3.5:4b)
 4. **Export** - Exports to .pdf (human readable) and .md (machine readable) files. 
 
@@ -50,6 +50,8 @@ brew install --cask mactex-no-gui
 # Ubuntu
 sudo apt install texlive-latex-base
 ```
+
+> **Note:** Because LLMs are non-deterministic, repeated runs on the same image may produce slightly different outputs while remaining semantically equivalent.
 
 ### Output
 

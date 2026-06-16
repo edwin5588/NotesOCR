@@ -10,9 +10,9 @@ def save_markdown(text: str, path: str) -> None:
 def compile_to_pdf(md_text: str, output_filename: str = "final_lab_report.pdf") -> bool:
     print("Compiling to PDF...")
     extra_args = [
-        "--pdf-engine=pdflatex",
+        "--pdf-engine=xelatex",
         "-V", "geometry:margin=0.75in",
-        "-V", "fontfamily=helvet",
+        "-V", "mainfont=Helvetica",
     ]
     try:
         pypandoc.convert_text(

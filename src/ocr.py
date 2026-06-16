@@ -1,12 +1,16 @@
 import base64
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 from PIL import Image
 from langchain_core.messages import HumanMessage
 from langchain_ollama import ChatOllama
 
 
+PARALLEL_WORKERS = 4
+
+
 def init_vlm(model: str = "qwen3-vl:2b") -> ChatOllama:
-    return ChatOllama(model=model, reasoning=False)
+    return ChatOllama(model=model)
 
 
 def get_prompt(label: str) -> str:
@@ -36,6 +40,28 @@ def format_content(label: str, content: str) -> str:
     return f"\n{content}\n"
 
 
+def _extract_region(args):
+    i, total, img_path, label, bbox, vlm = args
+
+    with Image.open(img_path).convert("RGB") as img:
+        crop = img.crop([int(c) for c in bbox])
+
+    buffered = BytesIO()
+    crop.save(buffered, format="JPEG")
+    b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+    message = HumanMessage(
+        content=[
+            {"type": "text", "text": get_prompt(label)},
+            {"type": "image_url", "image_url": f"data:image/jpeg;base64,{b64}"},
+        ]
+    )
+
+    print(f"[{i+1}/{total}] Extracting {label} at {bbox}...")
+    response = vlm.invoke([message])
+    return format_content(label, response.content.strip())
+
+
 def extract_all_regions(
     img_path: str,
     page_layout,
@@ -48,43 +74,32 @@ def extract_all_regions(
 
     sorted_blocks = sorted(page_layout.bboxes, key=lambda b: b.bbox[1])
     total = len(sorted_blocks)
-    document_parts: list[str] = []
 
     print(f"Processing {total} layout regions...\n")
 
+    # Build work list, preserving index for ordering
+    tasks = []
+    placeholders = {}
     for i, block in enumerate(sorted_blocks):
-        label = block.label
-        bbox = block.bbox
-
+        label, bbox = block.label, block.bbox
         if label in skip_labels:
             continue
-
         if label == "ChemicalBlock":
             print(f"[{i+1}/{total}] ChemicalBlock — using pre-processed output.")
             if chemical_block_output:
-                document_parts.append(f"\n{chemical_block_output}\n")
+                placeholders[i] = f"\n{chemical_block_output}\n"
             continue
+        tasks.append((i, total, img_path, label, bbox, vlm))
 
-        with Image.open(img_path).convert("RGB") as img:
-            crop = img.crop([int(c) for c in bbox])
+    results = {}
+    with ThreadPoolExecutor(max_workers=PARALLEL_WORKERS) as executor:
+        future_to_idx = {executor.submit(_extract_region, t): t[0] for t in tasks}
+        for future in as_completed(future_to_idx):
+            i = future_to_idx[future]
+            try:
+                results[i] = future.result()
+            except Exception as e:
+                print(f"  Warning: failed on region {i+1}: {e}")
 
-        buffered = BytesIO()
-        crop.save(buffered, format="JPEG")
-        b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-
-        message = HumanMessage(
-            content=[
-                {"type": "text", "text": get_prompt(label)},
-                {"type": "image_url", "image_url": f"data:image/jpeg;base64,{b64}"},
-            ]
-        )
-
-        try:
-            print(f"[{i+1}/{total}] Extracting {label} at {bbox}...")
-            response = vlm.invoke([message])
-            content = response.content.strip()
-            document_parts.append(format_content(label, content))
-        except Exception as e:
-            print(f"  Warning: failed on region {i+1}: {e}")
-
-    return document_parts
+    results.update(placeholders)
+    return [results[i] for i in sorted(results)]

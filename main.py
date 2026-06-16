@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from datetime import datetime
 
 from src.layout import detect_layout, visualize_layout
 from src.chemistry import process_chemical_block
@@ -19,9 +20,6 @@ def parse_args():
     parser.add_argument("image", nargs="?", default=DEFAULT_IMAGE, help="Path to lab notebook image")
     parser.add_argument("--vlm-model", default=DEFAULT_VLM_MODEL, help="Ollama vision model")
     parser.add_argument("--polish-model", default=DEFAULT_POLISHER_MODEL, help="Ollama text model for polish step")
-    parser.add_argument("--output-md", default="polished_lab_notebook.md", help="Output markdown path")
-    parser.add_argument("--output-pdf", default="final_lab_report.pdf", help="Output PDF path")
-    parser.add_argument("--annotated-image", default=None, help="Save annotated layout image to this path")
     parser.add_argument("--skip-polish", action="store_true", help="Skip LLM polish step")
     parser.add_argument("--skip-pdf", action="store_true", help="Skip PDF compilation")
     return parser.parse_args()
@@ -38,14 +36,20 @@ def main():
     if not os.path.exists(args.image):
         raise FileNotFoundError(f"Image not found: {args.image}")
 
+    run_dir = os.path.join("runs", datetime.now().strftime("run-%Y-%m-%d_%H-%M-%S"))
+    os.makedirs(run_dir, exist_ok=True)
+    print(f"Run artifacts → {run_dir}/")
+
+    output_md = os.path.join(run_dir, "polished_lab_notebook.md")
+    output_pdf = os.path.join(run_dir, "final_lab_report.pdf")
+    annotated_image = os.path.join(run_dir, "layout_annotated.png")
+
     # 1. Layout detection
     print(f"\n[1/5] Detecting layout regions in '{args.image}'...")
     t0 = time.perf_counter()
     image, page_layout = detect_layout(args.image)
     print(f"  Layout detection done ({_elapsed(t0)})")
-
-    if args.annotated_image:
-        visualize_layout(image, page_layout, output_path=args.annotated_image)
+    visualize_layout(image, page_layout, output_path=annotated_image)
 
     # 2. Init VLM
     print(f"\n[2/5] Initializing VLM '{args.vlm_model}'...")
@@ -86,11 +90,11 @@ def main():
         final_markdown = polish_markdown(raw_markdown, polisher)
         print(f"  Polish done ({_elapsed(t0)})")
 
-    save_markdown(final_markdown, args.output_md)
+    save_markdown(final_markdown, output_md)
 
     if not args.skip_pdf:
         t0 = time.perf_counter()
-        compile_to_pdf(final_markdown, args.output_pdf)
+        compile_to_pdf(final_markdown, output_pdf)
         print(f"  PDF compiled ({_elapsed(t0)})")
 
     print(f"\nDone. Total: {_elapsed(pipeline_start)}")

@@ -1,4 +1,9 @@
+# LangChain
+langchain-core>=0.3.0
+langchain-ollama>=0.3.0
+
 # Surya OCR dependencies
+surya-ocr>=0.14.0
 transformers>=4.56.1
 torch>=2.7.0,<3
 pydantic>=2.5.3,<3
