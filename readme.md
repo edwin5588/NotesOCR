@@ -15,8 +15,12 @@ The final structured text is stitched together and passed to a text-only LLM tha
 ### Pipeline
 
 1. **Surya layout detection** — segments the page into labeled regions (Text, Table, Equation, SectionHeader, ChemicalBlock)
+
 <img src="static/region_detect.png" width="500"/>
+
 2. **Per-region VLM extraction** — each crop is sent to a local VLM (Qwen3-VL) with a region-type-specific prompt, producing verbatim transcripts, LaTeX equations, Markdown tables, or SMILES structures
+  - There could be alot of regions (Surya identified 25), and running the VLM locally takes a long time. 
+  - This part is longest, but can easily swap out for an async version, where each region + prompt is sent to an inference API for parallel processing.
 3. **Stitch** — regions are sorted top-to-bottom and concatenated into a single Markdown document (Qwen3.5:4b)
 4. **Export** - Exports to .pdf (human readable) and .md (machine readable) files. 
 
@@ -26,6 +30,8 @@ The final structured text is stitched together and passed to a text-only LLM tha
 ### Requirements
 
 **Python dependencies:**
+- Python version: Python 3.11.15
+
 ```bash
 pip install -r requirements.txt
 ```
