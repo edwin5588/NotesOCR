@@ -20,7 +20,7 @@ The final structured text is stitched together and passed to a text-only LLM tha
 
 2. **Per-region VLM extraction** — each crop is sent to a local VLM (Qwen3-VL) with a region-type-specific prompt, producing verbatim transcripts, LaTeX equations, Markdown tables, or SMILES structures
   - Regions are extracted in parallel using a `ThreadPoolExecutor` (4 workers by default). To match, start Ollama with `OLLAMA_NUM_PARALLEL=4 ollama serve`.
-  - Since inference runs locally via Ollama, this step is slow (~5 min for a 25-region page). Swapping to an external inference API would significantly reduce this.
+  - Since inference runs locally via Ollama, this step is slow (~10 min for a 25-region page). Swapping to an external inference API would significantly reduce this.
 3. **Stitch** — regions are sorted top-to-bottom and concatenated into a single Markdown document (Qwen3.5:4b)
 4. **Export** - Exports to .pdf (human readable) and .md (machine readable) files. 
 
